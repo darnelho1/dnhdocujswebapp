@@ -10,6 +10,7 @@
   "author": "Darnell Holder <darnelho1@gmail.com> (https://represent.io/darnelho1)",
   "license": "ISC",
   "dependencies": {
+    "ejs": "^2.6.1",
     "express": "^4.16.4"
   }
 }
