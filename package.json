@@ -1,0 +1,15 @@
+{
+  "name": "dnhdocusignwebapp",
+  "version": "1.0.0",
+  "description": "demo app of the docusign api",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Darnell Holder <darnelho1@gmail.com> (https://represent.io/darnelho1)",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
