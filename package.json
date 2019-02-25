@@ -13,6 +13,11 @@
     "docusign-esign": "^4.2.1",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
-    "passport": "^0.4.0"
+    "express-session": "^1.15.6",
+    "fs-extra": "^7.0.1",
+    "moment": "^2.24.0",
+    "passport": "^0.4.0",
+    "path": "^0.12.7",
+    "promisfy": "^1.2.0"
   }
 }
