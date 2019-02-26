@@ -55,20 +55,13 @@ app.get('/', function (req, res) {
 app.get('/e5', function (req, res) {
 
   apiClient.generateAccessToken(clientID, clientSecret, req.query.code, function (err, oAuthToken) {
-    console.log(oAuthToken.accessToken);
-    apiClient.getUserInfo(oAuthToken.accessToken, function (err, userInfo) {
-      oAuthAccessToken = oAuthToken.accessToken;
-      //console.log(oAuthToken);
-      console.log(oAuthAccessToken);
-      apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
-      apiClient.setBasePath(userInfo.accounts[0].baseUri + '/restapi')
-      console.log(userInfo.accounts[0].baserUri)
-      console.log(userInfo.accounts[0].accountId);
-      //console.log(basePath);
-      //console.log(apiclient.basePath);
-      res.render('index')
-      //createEnvelope(userInfo.accounts[0].accountId, oAuthToken.accessToken);
-    });
+    //console.log(oAuthToken.accessToken);
+    oAuthAccessToken = oAuthToken.accessToken;
+    apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
+    //apiClient.setBasePath(userInfo.accounts[0].baseUri + '/restapi')
+    //console.log(userInfo.accounts[0].baserUri)
+    //console.log(userInfo.accounts[0].accountId)
+    res.render('index')
   });
 });
 
@@ -77,18 +70,15 @@ app.listen(port, function(){
 })
 
 
-app.post('/a', function listEnvelopesController(req, res){
-  //console.log(oAuthAccessToken)
-    //apiClient.setBasePath(basePath);
-    //apiClient.addDefaultHeader('Authorization' , 'Bearer ' + oAuthAccessToken);
+app.post('/a', function listRecipientsController(req, res){
     docusign.Configuration.default.setDefaultApiClient(apiClient);
     var envelopesApi = new docusign.EnvelopesApi();
     envelopesApi.listRecipients('8006154', "6a2d9802-8976-4840-b434-62c6b5ae194d", null, function (error, recips, response) {
       if (error) {
-        console.log('Error: ' + error);
-        console.log(JSON.stringify(apiClient.defaultHeaders));
-        console.log(apiClient.baseUri);
-        console.log(response);
+        //console.log('Error: ' + error);
+        //console.log(JSON.stringify(apiClient.defaultHeaders));
+        //console.log(apiClient.baseUri);
+        //console.log(response);
         return;
       }
       if (recips) {
@@ -97,18 +87,17 @@ app.post('/a', function listEnvelopesController(req, res){
       }
       return recips;
     });
-    console.log("I've been clicked")
+    //console.log("I've been clicked")
   })
 
 
 
-app.post('/b',function getUrl(req,res){
-  var curerntUrl = req.protocol + '://' + req.originalURl;
-  parsedurl = url.parse(curerntUrl, true)
-  //console.log(parsedurl.host);
-  //console.log(parsedurl.pathname);
-  //console.console.log(parsedurl.search);
-  res.render('index')
+app.post('/b',function getUserInfoController(req,res){
+  console.log(oAuthAccessToken);
+  apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
+    res.send(userInfo)
+  })
+
 })
 
 function createEnvelope(accountId) {
