@@ -11,12 +11,13 @@ const express = require('express'),
 const app = express()
     , host = 'localhost'
     , port = 5050
+    , accountId='8006154'
     , hostUrl = 'http://'+ host + ':' + port
     , clientID = '47f1113d-6380-4886-b0a6-cba02f960879'
     , clientSecret = 'e3122117-0328-4c3d-8381-b7e35d8404b9'
     , signerEmail = 'darnelho1@gmail.com'
     , signerName = 'Darnell Holder'
-    , templateId = '{TEMPLATE_ID}'
+    , envelopeId = '6a2d9802-8976-4840-b434-62c6b5ae194d'
     , baseUriSuffix = '/restapi'
     , testDocumentPath = '../demo_documents/test.pdf'
     , test2DocumentPath = '../demo_documents/battle_plan.docx'
@@ -27,12 +28,6 @@ const app = express()
 
 const responseTypeCode = apiClient.OAuth.ResponseType.CODE; // Response type of code, to be used for the Auth code grant
 const responseTypeToken = apiClient.OAuth.ResponseType.TOKEN; // Response type of token, to be used for implicit grant
-
-let accountId // The DocuSign account that will be used
-  , baseUri // the DocuSign platform base uri for the account.
-  , eg // The example that's been requested
-  ;
-
 
 app.set('view engine', 'ejs');
 
@@ -73,7 +68,7 @@ app.listen(port, function(){
 app.post('/a', function listRecipientsController(req, res){
     docusign.Configuration.default.setDefaultApiClient(apiClient);
     var envelopesApi = new docusign.EnvelopesApi();
-    envelopesApi.listRecipients('8006154', "6a2d9802-8976-4840-b434-62c6b5ae194d", null, function (error, recips, response) {
+    envelopesApi.listRecipients('8006154', envelopeId , null, function (error, recips, response) {
       if (error) {
         //console.log('Error: ' + error);
         //console.log(JSON.stringify(apiClient.defaultHeaders));
@@ -83,7 +78,7 @@ app.post('/a', function listRecipientsController(req, res){
       }
       if (recips) {
         console.log('Recipients: ' + JSON.stringify(recips));
-        res.send(recips);
+        res.send("<pre>" + JSON.stringify(recips)+ "</pre>" + "<li>Hello WOrld</li>");
       }
       return recips;
     });
@@ -100,42 +95,44 @@ app.post('/b',function getUserInfoController(req,res){
 
 })
 
-function createEnvelope(accountId) {
-    var envDef = new docusign.EnvelopeDefinition();
-    envDef.emailSubject = 'Please sign this document';
-    envDef.templateId = 'a8fc7de6-6c05-458e-bf79-803b2300d9aa';
-    //bc284b7a-da00-4da8-ae79-1afa58631033
-    //{TEMPLATE_ID}
-    // create a template role with a valid templateId and roleName and assign signer info
-    var tRole = new docusign.TemplateRole();
-    tRole.roleName = 'item 1';
-    tRole.name = 'Darnell Holder';
-    tRole.email = 'darnelho1@gmail.com';
+app.post('/c', function listenvelopesDocumentsController(req,res){
+  docusign.Configuration.default.setDefaultApiClient(apiClient);
+  var envelopesApi = new docusign.EnvelopesApi();
+  // call the listDocuments() API
+  envelopesApi.listDocuments(accountId, envelopeId, null, function (error, docsList, response) {
+    if (error) {
+      console.log('Error: ' + error);
+      return;
+    }
+    if (docsList) {
+      console.log('Envelope Documents: ' + JSON.stringify(docsList))
+    }
+});
 
-    // set the clientUserId on the recipient to mark them as embedded (ie we will generate their signing link)
-    tRole.clientUserId = '1001';
+})
 
-    // create a list of template roles and add our newly created role
-    var templateRolesList = [];
-    templateRolesList.push(tRole);
-
-    // assign template role(s) to the envelope
-    envDef.templateRoles = templateRolesList;
-
-    // send the envelope by setting |status| to 'sent'. To save as a draft set to 'created'
-    envDef.status = 'sent';
-
-    // use the |accountId| we retrieved through the Login API to create the Envelope
-    //var accountId = accountId;
-
-    // instantiate a new EnvelopesApi object
-    var envelopesApi = new docusign.EnvelopesApi();
-
-    // call the createEnvelope() API
-    envelopesApi.createEnvelope(accountId, {'envelopeDefinition': envDef}, function (err, envelopeSummary, response) {
-      if (err) {
-        console.log(err);
+app.get('/d',function downloadEnvelopeDocumentsController(req,res){
+  docusign.Configuration.default.setDefaultApiClient(apiClient);
+  var envelopesApi = new docusign.EnvelopesApi();
+  envelopesApi.getDocument(accountId, envelopeId, '1', null, function (error, document, response) {
+    if (error) {
+      res.send('Error: ' + error);
+      return;
+    }
+    if (document) {
+      try {
+        var fs = require('fs');
+        var path = require('path');
+        // download the document pdf
+        var filename = envelopeId + '_' + '1' + '.pdf';
+        var tempFile = path.resolve(__dirname, filename);
+        fs.writeFile(tempFile, new Buffer(document, 'binary'), function (err) {
+          if (err) console.log('Error: ' + err);
+        });
+        res.send('Document ' + '1' + ' from envelope ' + envelopeId + ' has been downloaded to:\n' + tempFile);
+      } catch (ex) {
+        res.send('Exception: ' + ex);
       }
-      console.log('EnvelopeSummary: ' + JSON.stringify(envelopeSummary));
-    });
-}
+    }
+  });
+})
