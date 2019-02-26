@@ -11,6 +11,7 @@ const express = require('express'),
 const app = express()
     , host = 'localhost'
     , port = 5050
+    , accountId = '8006154'
     , hostUrl = 'http://'+ host + ':' + port
     , clientID = '47f1113d-6380-4886-b0a6-cba02f960879'
     , clientSecret = 'e3122117-0328-4c3d-8381-b7e35d8404b9'
@@ -28,39 +29,28 @@ const app = express()
 const responseTypeCode = apiClient.OAuth.ResponseType.CODE; // Response type of code, to be used for the Auth code grant
 const responseTypeToken = apiClient.OAuth.ResponseType.TOKEN; // Response type of token, to be used for implicit grant
 
-let accountId // The DocuSign account that will be used
-  , baseUri // the DocuSign platform base uri for the account.
-  , eg // The example that's been requested
-  ;
-
 
 app.set('view engine', 'ejs');
 
-
-//var port = 5050;
-//const basePath = "https://demo.docusign.net/restapi"
 var oAuthAccessToken
 var encodedString
 
-//app.get('/', function(req, res) {
-//  res.render('index')
-//})
 apiClient.setBasePath(basePath);
 
+
 app.get('/', function (req, res) {
-    const authUri = apiClient.getAuthorizationUri(clientID, scopes, redirectUri, responseTypeCode);//get DocuSign OAuth authorization url
+    const authUri = apiClient.getAuthorizationUri(clientID, scopes, redirectUri, responseTypeCode);
      //Open DocuSign OAuth login in a browser, res being your node.js response object.
     res.redirect(authUri);
 });
+
+
 app.get('/e5', function (req, res) {
 
   apiClient.generateAccessToken(clientID, clientSecret, req.query.code, function (err, oAuthToken) {
     //console.log(oAuthToken.accessToken);
     oAuthAccessToken = oAuthToken.accessToken;
     apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
-    //apiClient.setBasePath(userInfo.accounts[0].baseUri + '/restapi')
-    //console.log(userInfo.accounts[0].baserUri)
-    //console.log(userInfo.accounts[0].accountId)
     res.render('index')
   });
 });
@@ -75,10 +65,9 @@ app.post('/a', function listRecipientsController(req, res){
     var envelopesApi = new docusign.EnvelopesApi();
     envelopesApi.listRecipients('8006154', "6a2d9802-8976-4840-b434-62c6b5ae194d", null, function (error, recips, response) {
       if (error) {
-        //console.log('Error: ' + error);
+
         //console.log(JSON.stringify(apiClient.defaultHeaders));
-        //console.log(apiClient.baseUri);
-        //console.log(response);
+
         return;
       }
       if (recips) {
@@ -87,18 +76,24 @@ app.post('/a', function listRecipientsController(req, res){
       }
       return recips;
     });
-    //console.log("I've been clicked")
+
   })
 
-
-
-app.post('/b',function getUserInfoController(req,res){
+app.get('/b',function getUserInfoController(req,res){
   console.log(oAuthAccessToken);
   apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
-    res.send(userInfo)
+    res.send(userInfo['name'])
   })
-
 })
+
+
+// app.post('/b',function getUserInfoController(req,res){
+//   console.log(oAuthAccessToken);
+//   apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
+//     res.send(userInfo['name'])
+//   })
+
+// })
 
 function createEnvelope(accountId) {
     var envDef = new docusign.EnvelopeDefinition();
