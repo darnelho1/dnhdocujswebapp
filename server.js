@@ -65,7 +65,7 @@ app.listen(port, function(){
 })
 
 
-app.post('/a', function listRecipientsController(req, res){
+app.get('/a', function listRecipientsController(req, res){
     docusign.Configuration.default.setDefaultApiClient(apiClient);
     var envelopesApi = new docusign.EnvelopesApi();
     envelopesApi.listRecipients('8006154', envelopeId , null, function (error, recips, response) {
@@ -87,7 +87,7 @@ app.post('/a', function listRecipientsController(req, res){
 
 
 
-app.post('/b',function getUserInfoController(req,res){
+app.get('/b',function getUserInfoController(req,res){
   console.log(oAuthAccessToken);
   apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
     res.send(userInfo)
@@ -95,7 +95,7 @@ app.post('/b',function getUserInfoController(req,res){
 
 })
 
-app.post('/c', function listenvelopesDocumentsController(req,res){
+app.get('/c', function listenvelopesDocumentsController(req,res){
   docusign.Configuration.default.setDefaultApiClient(apiClient);
   var envelopesApi = new docusign.EnvelopesApi();
   // call the listDocuments() API
@@ -106,6 +106,7 @@ app.post('/c', function listenvelopesDocumentsController(req,res){
     }
     if (docsList) {
       console.log('Envelope Documents: ' + JSON.stringify(docsList))
+      res.send(docsList)
     }
 });
 
