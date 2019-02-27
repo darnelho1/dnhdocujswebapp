@@ -3,16 +3,30 @@
   <head>
     <meta charset="utf-8">
     <title>DNH DocuSign WebApp</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
   </head>
   <body>
-<fieldset>
-  <form action="/a" method="post">
-    <input type="submit" class="ghost-button" value="List Recipients">
-  </form>
-  <form action="/b" method="get">
-    <input type="submit" value="Get User Info">
-  </form>
+    <div class="container">
+      <h1 class="center">DNH DocuSign Demo Web App</h1>
+      <fieldset>
+        <form action="/e" method="post">
+          <input type="submit" class="ghost-button" value=" Start Here - Embedded Signing">
+        </form>
+        <form action="/a" method="get">
+          <input type="submit" class="ghost-button" value="Then - List Recipients">
+        </form>
+        <form action="/b" method="get">
+          <input type="submit" class="ghost-button" value="Or - Get User Info">
+        </form>
+        <form action="/c" method="get">
+          <input type="submit" class="ghost-button" value="Or - List Envelope Documents">
+        </form>
+        <form action="/d" method="get">
+          <input type="submit" class="ghost-button" value="Or - Download Envelope Documents">
+        </form>
+      </fieldset>
+    </div>
+
 </fieldset>
 
   </body>
