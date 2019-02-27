@@ -17,7 +17,6 @@ const app = express()
     , clientSecret = 'e3122117-0328-4c3d-8381-b7e35d8404b9'
     , signerEmail = 'darnelho1@gmail.com'
     , signerName = 'Darnell Holder'
-    , envelopeId = '6a2d9802-8976-4840-b434-62c6b5ae194d'
     , baseUriSuffix = '/restapi'
     , testDocumentPath = '../demo_documents/test.pdf'
     , test2DocumentPath = '../demo_documents/battle_plan.docx'
@@ -34,7 +33,7 @@ app.use(express.static(path.join(__dirname, "/public")));
 
 
 var oAuthAccessToken
-var encodedString
+var envelopeId
 
 apiClient.setBasePath(basePath);
 
@@ -122,4 +121,116 @@ app.get('/d',function downloadEnvelopeDocumentsController(req,res){
       }
     }
   });
+})
+
+app.post('/e', function embeddedSigningController(req, res){
+docusign.Configuration.default.setDefaultApiClient(apiClient);
+//Read the file you wish to send from the local machine.
+fileStream = process.argv[2];
+pdfBytes = fs.readFileSync(path.resolve(__dirname, 'test.pdf'));
+pdfBase64 = pdfBytes.toString('base64');
+
+
+let envDef = new docusign.EnvelopeDefinition();
+
+//Set the Email Subject line and email message
+envDef.emailSubject = 'Please sign this document sent from Node SDK';
+envDef.emailBlurb = 'Please sign this document sent from the DocuSign Node.JS SDK.'
+
+//Read the file from the document and convert it to a Base64String
+let doc = new docusign.Document();
+doc.documentBase64 = pdfBase64;
+doc.fileExtension = 'pdf';
+doc.name = 'Node Doc Send Sample';
+doc.documentId = '1';
+
+//Push the doc to the documents array.
+let docs = [];
+docs.push(doc);
+envDef.documents = docs;
+
+//Create the signer with the previously provided name / email address
+let signer = new docusign.Signer();
+signer.name = 'Darnell Holder';
+signer.email = 'holderdarnell2@gmail.com';
+signer.routingOrder = '1';
+signer.recipientId = '1';
+signer.clientUserId = '123'; //ClientUserId specifies that a recipient is captive. It ties to a generic DocuSign account and cannot be referenced without generating a recipient token.
+
+//Create a tabs object and a signHere tab to be placed on the envelope
+let tabs = new docusign.Tabs();
+
+let signHere = new docusign.SignHere();
+signHere.documentId = '1';
+signHere.pageNumber = '1';
+signHere.recipientId = '1';
+signHere.tabLabel = 'SignHereTab';
+signHere.xPosition = '50';
+signHere.yPosition = '50';
+
+//Create the array for SignHere tabs, then add it to the general tab array
+signHereTabArray = [];
+signHereTabArray.push(signHere);
+
+tabs.signHereTabs = signHereTabArray;
+
+//Then set the recipient, named signer, tabs to the previously created tab array
+signer.tabs = tabs;
+
+//Add the signer to the signers array
+let signers = [];
+signers.push(signer);
+
+//Envelope status for drafts is created, set to sent if wanting to send the envelope right away
+envDef.status = 'sent';
+
+//Create the general recipients object, then set the signers to the signer array just created
+let recipients = new docusign.Recipients();
+recipients.signers = signers;
+
+//Then add the recipients object to the enevelope definitions
+envDef.recipients = recipients;
+
+// *** End envelope creation ***
+
+
+//Send the envelope
+let envelopesApi = new docusign.EnvelopesApi();
+envelopesApi.createEnvelope(accountId, { 'envelopeDefinition': envDef }, function (err, envelopeSummary, response) {
+
+  if (err) {
+    return res.send('Error while creating a DocuSign envelope:' + err);
+  }
+  //Set envelopeId the envelopeId that was just created
+  envelopeId = envelopeSummary.envelopeId;
+  console.log(envelopeId);
+
+
+  let recipientViewRequest = new docusign.RecipientViewRequest();
+  recipientViewRequest.authenticationMethod = 'email';
+  recipientViewRequest.clientUserId = '123';
+  recipientViewRequest.recipientId = '1';
+  recipientViewRequest.returnUrl = 'http://localhost:5050/';
+  recipientViewRequest.userName = 'Darnell Holder';
+  recipientViewRequest.email = 'holderdarnell2@gmail.com';
+
+  //Create the variable used to handle the response
+  recipientViewResults = docusign.ViewLinkRequest();
+
+  //Make the request for a recipient view
+  envelopesApi.createRecipientView(accountId, envelopeId, { recipientViewRequest: recipientViewRequest }, function (err, recipientViewResults, response) {
+
+    if (err) {
+      return res.send('Error while creating a DocuSign recipient view:' + err);
+    }
+
+    //Set the signingUrl variable to the link returned from the CreateRecipientView request
+    let signingUrl = recipientViewResults.url;
+
+    //Then redirect to the signing URL
+    res.redirect(signingUrl);
+  });
+
+});
+
 })
