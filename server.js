@@ -11,7 +11,6 @@ const express = require('express'),
 const app = express()
     , host = 'localhost'
     , port = 5050
-    , accountId='8006154'
     , hostUrl = 'http://'+ host + ':' + port
     , clientID = '47f1113d-6380-4886-b0a6-cba02f960879'
     , clientSecret = 'e3122117-0328-4c3d-8381-b7e35d8404b9'
@@ -24,6 +23,9 @@ const app = express()
 
 var oAuthAccessToken
   , envelopeId
+  , acctUserName
+  , acctEmail
+  , accountId
 
 
 app.set('view engine', 'ejs');
@@ -41,6 +43,14 @@ app.get('/e5', function (req, res) {
   apiClient.generateAccessToken(clientID, clientSecret, req.query.code, function (err, oAuthToken) {
     oAuthAccessToken = oAuthToken.accessToken;
     apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
+    apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
+      acctUserName = userInfo.name
+      acctEmail = userInfo.email
+      console.log(userInfo.accounts[0].accountId);
+      accountId = userInfo.accounts[0].accountId;
+      console.log(acctUserName);
+      console.log(acctEmail);
+    })
     res.render('index')
   });
 });
@@ -52,7 +62,7 @@ app.listen(port, function(){
 app.get('/a', function listRecipientsController(req, res){
     docusign.Configuration.default.setDefaultApiClient(apiClient);
     var envelopesApi = new docusign.EnvelopesApi();
-    envelopesApi.listRecipients('8006154', envelopeId , null, function (error, recips, response) {
+    envelopesApi.listRecipients(accountId, envelopeId , null, function (error, recips, response) {
       if (error) {
         //console.log(JSON.stringify(apiClient.defaultHeaders));
         return;
@@ -140,8 +150,8 @@ docs.push(doc);
 envDef.documents = docs;
 
 let signer = new docusign.Signer();
-signer.name = 'Darnell Holder';
-signer.email = 'holderdarnell2@gmail.com';
+signer.name = acctUserName;
+signer.email = acctEmail;
 signer.routingOrder = '1';
 signer.recipientId = '1';
 signer.clientUserId = '123';
@@ -189,8 +199,8 @@ envelopesApi.createEnvelope(accountId, { 'envelopeDefinition': envDef }, functio
   recipientViewRequest.clientUserId = '123';
   recipientViewRequest.recipientId = '1';
   recipientViewRequest.returnUrl = 'http://localhost:5050/';
-  recipientViewRequest.userName = 'Darnell Holder';
-  recipientViewRequest.email = 'holderdarnell2@gmail.com';
+  recipientViewRequest.userName = acctUserName;
+  recipientViewRequest.email = acctEmail;
 
   recipientViewResults = docusign.ViewLinkRequest();
 
