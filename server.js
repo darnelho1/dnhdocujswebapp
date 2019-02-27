@@ -30,32 +30,24 @@ const responseTypeCode = apiClient.OAuth.ResponseType.CODE; // Response type of 
 const responseTypeToken = apiClient.OAuth.ResponseType.TOKEN; // Response type of token, to be used for implicit grant
 
 app.set('view engine', 'ejs');
+app.use(express.static(path.join(__dirname, "/public")));
 
 
-//var port = 5050;
-//const basePath = "https://demo.docusign.net/restapi"
 var oAuthAccessToken
 var encodedString
 
-//app.get('/', function(req, res) {
-//  res.render('index')
-//})
 apiClient.setBasePath(basePath);
 
 app.get('/', function (req, res) {
-    const authUri = apiClient.getAuthorizationUri(clientID, scopes, redirectUri, responseTypeCode);//get DocuSign OAuth authorization url
+    const authUri = apiClient.getAuthorizationUri(clientID, scopes, redirectUri, responseTypeCode);
      //Open DocuSign OAuth login in a browser, res being your node.js response object.
     res.redirect(authUri);
 });
 app.get('/e5', function (req, res) {
 
   apiClient.generateAccessToken(clientID, clientSecret, req.query.code, function (err, oAuthToken) {
-    //console.log(oAuthToken.accessToken);
     oAuthAccessToken = oAuthToken.accessToken;
     apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
-    //apiClient.setBasePath(userInfo.accounts[0].baseUri + '/restapi')
-    //console.log(userInfo.accounts[0].baserUri)
-    //console.log(userInfo.accounts[0].accountId)
     res.render('index')
   });
 });
@@ -70,19 +62,15 @@ app.get('/a', function listRecipientsController(req, res){
     var envelopesApi = new docusign.EnvelopesApi();
     envelopesApi.listRecipients('8006154', envelopeId , null, function (error, recips, response) {
       if (error) {
-        //console.log('Error: ' + error);
         //console.log(JSON.stringify(apiClient.defaultHeaders));
-        //console.log(apiClient.baseUri);
-        //console.log(response);
         return;
       }
       if (recips) {
         console.log('Recipients: ' + JSON.stringify(recips));
-        res.send("<pre>" + JSON.stringify(recips)+ "</pre>" + "<li>Hello WOrld</li>");
+        res.send(recips);
       }
       return recips;
     });
-    //console.log("I've been clicked")
   })
 
 
@@ -99,14 +87,13 @@ app.get('/c', function listenvelopesDocumentsController(req,res){
   docusign.Configuration.default.setDefaultApiClient(apiClient);
   var envelopesApi = new docusign.EnvelopesApi();
   // call the listDocuments() API
-  envelopesApi.listDocuments(accountId, envelopeId, null, function (error, docsList, response) {
+  envelopesApi.listDocuments(accountId, envelopeId, null, function (error, docs, response) {
     if (error) {
       console.log('Error: ' + error);
       return;
     }
-    if (docsList) {
-      console.log('Envelope Documents: ' + JSON.stringify(docsList))
-      res.send(docsList)
+    if (docs) {
+      res.send(docs)
     }
 });
 
@@ -124,7 +111,6 @@ app.get('/d',function downloadEnvelopeDocumentsController(req,res){
       try {
         var fs = require('fs');
         var path = require('path');
-        // download the document pdf
         var filename = envelopeId + '_' + '1' + '.pdf';
         var tempFile = path.resolve(__dirname, filename);
         fs.writeFile(tempFile, new Buffer(document, 'binary'), function (err) {
