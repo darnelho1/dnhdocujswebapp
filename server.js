@@ -1,17 +1,11 @@
-const express = require('express'),
-      passport = require('passport')
-    , session = require('express-session')
+const express = require('express')
     , docusign = require('docusign-esign')
-    , moment = require('moment')
     , fs = require('fs-extra')
-    , path = require('path')
-    , promisfy = require('util')
-    , url = require('url');
+    , path = require('path');
 
 const app = express()
     , host = 'localhost'
     , port = 5050
-    , hostUrl = 'http://'+ host + ':' + port
     , clientID = '47f1113d-6380-4886-b0a6-cba02f960879'
     , clientSecret = 'e3122117-0328-4c3d-8381-b7e35d8404b9'
     , redirectUri ="http://localhost:5050/e5"
@@ -35,21 +29,20 @@ apiClient.setBasePath(basePath);
 
 app.get('/', function (req, res) {
     const authUri = apiClient.getAuthorizationUri(clientID, scopes, redirectUri, responseTypeCode);
-     //Open DocuSign OAuth login in a browser, res being your node.js response object.
     res.redirect(authUri);
 });
-app.get('/e5', function (req, res) {
 
+app.get('/e5', function (req, res) {
   apiClient.generateAccessToken(clientID, clientSecret, req.query.code, function (err, oAuthToken) {
     oAuthAccessToken = oAuthToken.accessToken;
     apiClient.addDefaultHeader('Authorization', 'Bearer ' + oAuthToken.accessToken);
     apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
       acctUserName = userInfo.name
       acctEmail = userInfo.email
-      console.log(userInfo.accounts[0].accountId);
+      //console.log(userInfo.accounts[0].accountId);
       accountId = userInfo.accounts[0].accountId;
-      console.log(acctUserName);
-      console.log(acctEmail);
+      //console.log(acctUserName);
+      //console.log(acctEmail);
     })
     res.render('index')
   });
@@ -68,7 +61,6 @@ app.get('/a', function listRecipientsController(req, res){
         return;
       }
       if (recips) {
-        console.log('Recipients: ' + JSON.stringify(recips));
         res.send("<pre>" + JSON.stringify(recips) + "</pre>" + '<a href="/"> Return Home </a>');
       }
       return recips;
@@ -78,7 +70,7 @@ app.get('/a', function listRecipientsController(req, res){
 
 
 app.get('/b',function getUserInfoController(req,res){
-  console.log(oAuthAccessToken);
+  //console.log(oAuthAccessToken);
   apiClient.getUserInfo(oAuthAccessToken, function(err, userInfo){
     res.send("<pre>" + JSON.stringify(userInfo) + "</pre>" + '<a href="/"> Return Home </a>')
   })
@@ -191,7 +183,7 @@ envelopesApi.createEnvelope(accountId, { 'envelopeDefinition': envDef }, functio
     return res.send('Error while creating a DocuSign envelope:' + err);
   }
   envelopeId = envelopeSummary.envelopeId;
-  console.log(envelopeId);
+  //console.log(envelopeId);
 
 
   let recipientViewRequest = new docusign.RecipientViewRequest();
