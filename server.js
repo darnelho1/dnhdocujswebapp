@@ -125,6 +125,10 @@ fileStream = process.argv[2];
 pdfBytes = fs.readFileSync(path.resolve(__dirname, 'test.pdf'));
 pdfBase64 = pdfBytes.toString('base64');
 
+fileStream2 = process.argv[2];
+pdfBytes2 = fs.readFileSync(path.resolve(__dirname, 'test2.pdf'));
+pdfBase642 = pdfBytes.toString('base64');
+
 let envDef = new docusign.EnvelopeDefinition();
 
 envDef.emailSubject = 'Please sign this document sent from Darnell';
@@ -137,8 +141,14 @@ doc.fileExtension = 'pdf';
 doc.name = 'Node Doc Send Sample';
 doc.documentId = '1';
 
+let doc2 = new docusign.Document();
+doc2.documentBase64 = pdfBase642;
+doc2.fileExtension = 'pdf';
+doc2.name = 'Node Doc Send Sample';
+doc2.documentId = '2';
+
 let docs = [];
-docs.push(doc);
+docs.push(doc,doc2);
 envDef.documents = docs;
 
 let signer = new docusign.Signer();
@@ -158,8 +168,16 @@ signHere.tabLabel = 'SignHereTab';
 signHere.xPosition = '50';
 signHere.yPosition = '550';
 
+let signHere2 = new docusign.SignHere();
+signHere2.documentId = '2';
+signHere2.pageNumber = '2';
+signHere2.recipientId = '1';
+signHere2.tabLabel = 'SignHereTab';
+signHere2.xPosition = '50';
+signHere2.yPosition = '350';
+
 signHereTabArray = [];
-signHereTabArray.push(signHere);
+signHereTabArray.push(signHere, signHere2);
 
 tabs.signHereTabs = signHereTabArray;
 
